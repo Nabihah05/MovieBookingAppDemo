@@ -1,22 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MovieBookingAppDemo.Data;
 using MovieBookingAppDemo.Models;
+using MovieBookingAppDemo.Service;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MovieBookingAppDemo.Controllers
 {
     public class MoviesController : Controller
     {
         private readonly DataContext _context;
+        private readonly BlobService _blobService;
 
-        public MoviesController(DataContext context)
+        //constructor 
+        public MoviesController(DataContext context, BlobService blobService)
         {
             _context = context;
+            _blobService = blobService;
         }
 
         // GET: Movies
@@ -54,15 +58,45 @@ namespace MovieBookingAppDemo.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MovieId,Title,Genre,ImageUrl")] Movie movie)
+        public async Task<IActionResult> Create(Movie movie, IFormFile imageFile)
         {
+            //checks if user selected a file
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                ModelState.AddModelError("", "Please select an image file.");
+            }
+
+            //only continues if theres no validation error 
             if (ModelState.IsValid)
             {
-                _context.Add(movie);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // uploads file (image) to local blob storage
+                    movie.ImageUrl = await _blobService.UploadFileAsync(imageFile, "movie-images");
+
+                    //checks if file upload failed 
+                    if (string.IsNullOrEmpty(movie.ImageUrl))
+                    {
+                        ModelState.AddModelError("", "Image upload failed. No URL was returned.");
+                        return View(movie);  //shows error on the same page 
+                    }
+
+                    //saves entry to the database (including the image url)
+                    _context.Add(movie);
+                    await _context.SaveChangesAsync();
+
+                    //redirect to index page after successful 
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    // If something goes wrong when uploading, show the error message
+                    ModelState.AddModelError("", "Upload failed: " + ex.Message);
+                }
             }
             return View(movie);
+            // If validation fails, return the same view with entered data and errors
+
         }
 
         // GET: Movies/Edit/5

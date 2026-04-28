@@ -33,9 +33,18 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Genre)
             </td>
-            <td>
-              @*   @Html.DisplayFor(modelItem => item.ImageUrl) *@
-                    <img src="@item.ImageUrl" />
+                <td>
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" style="width:120px;height:180px;object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <span>No Image</span>
+                    }
+
+                    @*   @Html.DisplayFor(modelItem => item.ImageUrl)  *@
+                   
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.MovieId">Edit</a> |

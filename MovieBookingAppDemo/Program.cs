@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MovieBookingAppDemo.Data;
+using MovieBookingAppDemo.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,9 @@ builder.Services.AddControllersWithViews();
 // add service for db context 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//register the blob service 
+builder.Services.AddScoped<BlobService>();
 
 
 var app = builder.Build();
