@@ -1,0 +1,56 @@
+﻿@model List<MovieBookingAppDemo.Models.BookingSummary>
+
+<!-- SEARCH BAR-->
+<form method="get">
+    <h5> Search by Booking ID or Movie Name</h5>
+
+    <div class="input-group">
+        <input type="text" name="search" placeholder="Enter booking ID or movie name" class="form-control" />
+        <!--SEARCH must must parameter in the conroller--></>
+       
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
+
+<!-- Bootstrap styling:
+form-control: makes the input box look full-width, and consistent
+btn btn-success: styles the button with green color
+input-group: places the input and button next to each other in one line
+placeholder: shows a hint inside the input to guide the user on what to type -->
+
+<hr />
+
+<table class="table table-striped table-bordered table-hover">
+    
+    <thead class="table-success">
+        <tr>
+            <th>Booking ID</th>
+            <th>Movie Name</th>
+            <th>Genre</th>
+            <th>Cinema</th>
+            <th>Location</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.BookingId</td>
+                <td>@item.MovieTitle</td>
+                <td>@item.MovieGenre</td>
+                <td>@item.CinemaName</td>
+                <td>@item.CinemaLocation</td>
+                <td>@item.BookingDate</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<!-- Bootstrap table styling:
+table-striped: adds alternating row colours
+table-bordered: adds borders around all cells
+table-hover: highlights a row when the user hovers over it
+table-success: gives the header a green background to make it stand out -->
