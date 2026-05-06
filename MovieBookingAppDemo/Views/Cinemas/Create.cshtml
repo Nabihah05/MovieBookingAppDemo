@@ -7,6 +7,15 @@
 <h1>Create</h1>
 
 <h4>Cinema</h4>
+
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -24,7 +33,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" value="https://picsum.photos/200" />
+                <input asp-for="ImageUrl" class="form-control"/>
                 <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
             <div class="form-group">

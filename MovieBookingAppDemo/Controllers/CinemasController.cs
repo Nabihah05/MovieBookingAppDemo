@@ -139,14 +139,39 @@ namespace MovieBookingAppDemo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var cinema = await _context.Cinemas.FindAsync(id);
-            if (cinema != null)
+            var cinema = await _context.Cinemas
+                .Include(c => c.TicketBookings)
+                .FirstOrDefaultAsync(c => c.CinemaId == id);
+
+            if (cinema == null)
             {
-                _context.Cinemas.Remove(cinema);
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            // CHECK ACTIVE BOOKINGS
+            if (cinema.TicketBookings.Any())
+            {
+                TempData["Error"] = "Cannot delete cinema with active bookings.";
+                return View(cinema);
+            }
+            try
+            {
+
+                // Try to remove the cinema
+                _context.Cinemas.Remove(cinema);
+
+                // Save the delete to the database
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                // If something unexpected goes wrong, show an error message 
+                TempData["Error"] = "Something went wrong while deleting the cinema. Please try again.";
+
+                return View(cinema);
+            }
         }
 
         private bool CinemaExists(int id)

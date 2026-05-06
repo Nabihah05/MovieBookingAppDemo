@@ -50,7 +50,7 @@ namespace MovieBookingAppDemo.Controllers
         public IActionResult Create()
         {
             ViewData["CinemaId"] = new SelectList(_context.Cinemas, "CinemaId", "CinemaId");
-            ViewData["MovieId"] = new SelectList(_context.Movies, "MovieId", "MovieId");
+            ViewData["MovieId"] = new SelectList(_context.Movies, "MovieId", "Title");
             return View();
         }
 
@@ -63,12 +63,29 @@ namespace MovieBookingAppDemo.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Check for double booking before it gets saved 
+                var existingBooking = _context.TicketBookings
+                    .Any(b => b.CinemaId == ticketBooking.CinemaId
+                           && b.ShowDate == ticketBooking.ShowDate);
+
+                if (existingBooking)
+                {
+                    TempData["Error"] = "This booking is not available for the selected date/time. Please select another cinema or choose a different time.";
+                    //another way to write the error message: 
+                    // model state eror: ModelState.AddModelError("", "This cinema is already booked for the selected date/time.");
+
+                    //reloads the dropdowns
+                    ViewData["CinemaId"] = new SelectList(_context.Cinemas, "CinemaId", "CinemaId", ticketBooking.CinemaId);
+                    ViewData["MovieId"] = new SelectList(_context.Movies, "MovieId", "Title", ticketBooking.MovieId);
+
+                    return View(ticketBooking);
+                }
+
                 _context.Add(ticketBooking);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CinemaId"] = new SelectList(_context.Cinemas, "CinemaId", "CinemaId", ticketBooking.CinemaId);
-            ViewData["MovieId"] = new SelectList(_context.Movies, "MovieId", "MovieId", ticketBooking.MovieId);
+
             return View(ticketBooking);
         }
 

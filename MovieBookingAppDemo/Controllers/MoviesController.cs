@@ -173,13 +173,26 @@ namespace MovieBookingAppDemo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var movie = await _context.Movies.FindAsync(id);
-            if (movie != null)
+            //searches the DB 
+            var movie = await _context.Movies
+        .Include(m => m.TicketBookings)
+        .FirstOrDefaultAsync(m => m.MovieId == id);
+
+            if (movie == null)
             {
-                _context.Movies.Remove(movie);
+                return NotFound();
             }
 
+            // PREVENT DELETION IF BOOKINGS EXIST
+            if (movie.TicketBookings.Any())
+            {
+                TempData["Error"] = "Cannot delete movie with active bookings.";
+                return View(movie);
+            }
+
+            _context.Movies.Remove(movie);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
